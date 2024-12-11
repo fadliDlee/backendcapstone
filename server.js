@@ -1,11 +1,10 @@
 require('dotenv').config();
 const Hapi = require('@hapi/hapi');
+const { register, login } = require('./controllers/authController');
+const { submitTest } = require('./controllers/testController');
+const { getTestHistory, saveTestHistory } = require('./controllers/historyController');
 
-// Import Routes
-const authRoutes = require('./routes/authRoutes');
-const testRoutes = require('./routes/testRoutes');
-const historyRoutes = require('./routes/historyRoutes');
-
+// Inisialisasi server Hapi
 const init = async () => {
     const server = Hapi.server({
         port: process.env.PORT || 3002,
@@ -13,20 +12,26 @@ const init = async () => {
     });
 
     // Debugging: Cek apakah routes sudah benar
-    console.log('Auth Routes:', authRoutes);
-    console.log('Test Routes:', testRoutes);
-    console.log('History Routes:', historyRoutes);
+    console.log('Auth Routes:', register, login);
+    console.log('Test Routes:', submitTest);
+    console.log('History Routes:', { getTestHistory, saveTestHistory });
 
     // Register all routes
-    server.route([...authRoutes, ...testRoutes, ...historyRoutes]);
+    server.route([
+        ...require('./routes/authRoutes'),
+        ...require('./routes/testRoutes'),
+        ...require('./routes/historyRoutes')
+    ]);
 
     await server.start();
     console.log(`Server running on ${server.info.uri}`);
 };
 
+// Error handling untuk unhandled rejection
 process.on('unhandledRejection', (err) => {
     console.log(err);
     process.exit(1);
 });
 
+// Menjalankan server
 init();

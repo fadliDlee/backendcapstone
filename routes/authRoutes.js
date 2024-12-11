@@ -1,3 +1,4 @@
+// authRoutes.js
 const Joi = require('joi');
 const AuthController = require('../controllers/authController');
 

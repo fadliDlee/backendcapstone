@@ -1,13 +1,25 @@
-// testController.js
+const loadModel = require('../utils/loadModel'); // Pastikan path-nya benar
+let model = null;
 
 const submitTest = async (request, h) => {
     try {
         const { userId, answers } = request.payload;
 
-        // Logika sederhana untuk menghitung skor dari jawaban pengguna
-        const totalScore = answers.reduce((sum, score) => sum + score, 0);
+        // Pastikan model sudah dimuat
+        if (!model) {
+            model = await loadModel();
+        }
 
-        // Penentuan tingkat stres berdasarkan skor
+        // Proses input untuk model (convert answers ke tensor)
+        const tf = require('@tensorflow/tfjs-node'); // Pastikan TensorFlow diimpor di sini
+        const inputTensor = tf.tensor2d([answers], [1, answers.length]);
+
+        // Prediksi menggunakan model
+        const prediction = model.predict(inputTensor);
+        const result = prediction.arraySync(); // Mendapatkan hasil prediksi
+
+        // Skor total dan tingkat stres bisa dihitung berdasarkan output model
+        const totalScore = answers.reduce((sum, score) => sum + score, 0);
         let stressLevel = '';
         if (totalScore < 10) {
             stressLevel = 'Low';
@@ -18,11 +30,11 @@ const submitTest = async (request, h) => {
         }
 
         // Simpan hasil tes ke database (simulasi)
-        // Anda dapat mengganti ini dengan logika penyimpanan ke database sesungguhnya
         const testResult = {
             userId,
             totalScore,
             stressLevel,
+            modelPrediction: result, // Menyertakan hasil dari model
             date: new Date(),
         };
 
